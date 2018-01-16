@@ -64,8 +64,8 @@ export function Column(type: (type?: any) => Function, options?: ColumnEmbeddedO
  * Column decorator is used to mark a specific class property as a table column.
  * Only properties decorated with this decorator will be persisted to the database when entity be saved.
  */
-export function Column(typeOrOptions?: ((type?: any) => Function)|ColumnType|(ColumnOptions&ColumnEmbeddedOptions), options?: (ColumnOptions&ColumnEmbeddedOptions)): Function {
-    let type: ColumnType|undefined;
+export function Column(typeOrOptions?: ((type?: any) => Function) | ColumnType | (ColumnOptions & ColumnEmbeddedOptions), options?: (ColumnOptions & ColumnEmbeddedOptions)): Function {
+    let type: ColumnType | undefined;
     if (typeof typeOrOptions === "string" || typeOrOptions instanceof Function) {
         type = <ColumnType> typeOrOptions;
 
@@ -74,7 +74,6 @@ export function Column(typeOrOptions?: ((type?: any) => Function)|ColumnType|(Co
         type = typeOrOptions.type;
     }
     return function (object: Object, propertyName: string) {
-
         if (typeOrOptions instanceof Function) {
 
             const reflectMetadataType = Reflect && (Reflect as any).getMetadata ? (Reflect as any).getMetadata("design:type", object, propertyName) : undefined;
@@ -102,11 +101,21 @@ export function Column(typeOrOptions?: ((type?: any) => Function)|ColumnType|(Co
 
             // check if there is no type in column options then set type from first function argument, or guessed one
             if (!options.type && type)
-                options = Object.assign({ type: type } as ColumnOptions, options);
+                options = Object.assign({type: type} as ColumnOptions, options);
+
+            let target: any = object.constructor;
+
+            if (options && options.extendEntity) {
+                const alternativeTarget = getMetadataArgsStorage().columns.find(c => c.target.toString().startsWith(`function ${(options as any).extendEntity}() {`));
+
+                if (alternativeTarget) {
+                    target = alternativeTarget.target;
+                }
+            }
 
             // create and register a new column metadata
             const args: ColumnMetadataArgs = {
-                target: object.constructor,
+                target,
                 propertyName: propertyName,
                 mode: "regular",
                 options: options

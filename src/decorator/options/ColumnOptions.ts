@@ -17,6 +17,11 @@ export interface ColumnOptions {
     name?: string;
 
     /**
+     * Entity to extend with this field
+     */
+    extendEntity?: string;
+
+    /**
      * Column type's length. Used only on some column types.
      * For example type = "string" and length = "100" means that ORM will create a column with type varchar(100).
      */
@@ -110,5 +115,5 @@ export interface ColumnOptions {
      * this column when reading or writing to the database.
      */
     transformer?: ValueTransformer;
-    
+
 }
